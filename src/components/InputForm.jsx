@@ -8,15 +8,29 @@ export const InputForm = ({
   generateRandomData,
   loadExampleData
 }) => {
-  const [localP, setLocalP] = useState(numProcesses);
-  const [localR, setLocalR] = useState(numResources);
+  const [localP, setLocalP] = useState(numProcesses || "");
+  const [localR, setLocalR] = useState(numResources || "");
+  const [errorMsg, setErrorMsg] = useState("");
 
   const handleApply = () => {
-    // Clamping limits
-    const p = Math.max(1, Math.min(10, localP));
-    const r = Math.max(1, Math.min(10, localR));
-    setLocalP(p);
-    setLocalR(r);
+    setErrorMsg("");
+    
+    const pStr = localP.toString().trim();
+    const rStr = localR.toString().trim();
+
+    if (pStr === "" || rStr === "") {
+      setErrorMsg("Inputs cannot be empty.");
+      return;
+    }
+
+    const p = parseInt(pStr);
+    const r = parseInt(rStr);
+
+    if (isNaN(p) || p <= 0 || p > 10 || isNaN(r) || r <= 0 || r > 10) {
+      setErrorMsg("Values must be between 1 and 10.");
+      return;
+    }
+
     onDimensionsChange(p, r);
   };
 
@@ -37,8 +51,12 @@ export const InputForm = ({
             min="1" 
             max="10" 
             value={localP} 
-            onChange={e => setLocalP(parseInt(e.target.value) || 1)}
-            className="w-full bg-background border border-border px-3 py-2 rounded text-text focus:outline-none focus:border-primary transition-colors"
+            placeholder="Enter processes (1-10)"
+            onChange={e => {
+              setLocalP(e.target.value);
+              setErrorMsg("");
+            }}
+            className="w-full bg-background border border-border px-3 py-2 rounded text-text focus:outline-none focus:border-primary transition-colors placeholder:text-text-muted/40"
           />
         </div>
         <div>
@@ -50,11 +68,17 @@ export const InputForm = ({
             min="1" 
             max="10" 
             value={localR} 
-            onChange={e => setLocalR(parseInt(e.target.value) || 1)}
-            className="w-full bg-background border border-border px-3 py-2 rounded text-text focus:outline-none focus:border-primary transition-colors"
+            placeholder="Enter resources (1-10)"
+            onChange={e => {
+              setLocalR(e.target.value);
+              setErrorMsg("");
+            }}
+            className="w-full bg-background border border-border px-3 py-2 rounded text-text focus:outline-none focus:border-primary transition-colors placeholder:text-text-muted/40"
           />
         </div>
       </div>
+
+      {errorMsg && <div className="text-error text-xs font-bold px-1">{errorMsg}</div>}
       
       <button 
         onClick={handleApply}

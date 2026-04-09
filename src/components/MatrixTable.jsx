@@ -49,11 +49,16 @@ export const MatrixTable = ({
                     <td key={j} className="p-1">
                       {editable ? (
                         <input
-                          type="number"
-                          min="0"
+                          type="text"
                           value={val}
-                          onChange={(e) => onChange(i, j, parseInt(e.target.value) || 0)}
-                          className="matrix-input w-10 sm:w-12"
+                          placeholder="0"
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            if (raw === "" || /^\d+$/.test(raw)) {
+                              onChange(i, j, raw);
+                            }
+                          }}
+                          className="matrix-input w-10 h-10 sm:w-12 sm:h-12 text-center text-base font-bold bg-[#0f172a] focus:bg-[#08170d] focus:ring-2 focus:ring-[#10b981] transition-all rounded shadow-sm"
                         />
                       ) : (
                         <div className={cn(
