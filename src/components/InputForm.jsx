@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { Settings, RefreshCw, Layers, Database } from 'lucide-react';
+import { Settings, RefreshCw, Layers, Database, ShieldCheck, ShieldAlert } from 'lucide-react';
 
 export const InputForm = ({ 
   numProcesses, 
   numResources, 
   onDimensionsChange, 
-  generateRandomData,
+  onGenerateSafeData,
+  onGenerateUnsafeData,
+  onGenerateRandomData,
   loadExampleData
 }) => {
   const [localP, setLocalP] = useState(numProcesses || "");
@@ -89,17 +91,25 @@ export const InputForm = ({
 
       <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-border/50">
         <button 
-          onClick={generateRandomData}
-          className="glass-button w-full justify-center text-sm"
+          onClick={onGenerateSafeData}
+          className="glass-button w-full justify-center text-sm border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
         >
-          <RefreshCw className="w-4 h-4 text-primary" />
-          <span>Randomize Matrix Data</span>
+          <ShieldCheck className="w-4 h-4 mr-1" />
+          <span>Generate Safe Case</span>
         </button>
         <button 
-          onClick={loadExampleData}
-          className="glass-button w-full justify-center text-sm border-primary/30 text-primary/80 hover:text-primary"
+          onClick={onGenerateUnsafeData}
+          className="glass-button w-full justify-center text-sm border-red-500/30 text-red-400 hover:bg-red-500/10"
         >
-          Load Safe Example
+          <ShieldAlert className="w-4 h-4 mr-1" />
+          <span>Generate Unsafe Case</span>
+        </button>
+        <button 
+          onClick={onGenerateRandomData}
+          className="glass-button w-full justify-center text-sm border-primary/30 text-primary/80 hover:text-primary hover:bg-primary/10"
+        >
+          <RefreshCw className="w-4 h-4 mr-1" />
+          <span>Generate Random Matrix</span>
         </button>
       </div>
 

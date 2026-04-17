@@ -135,3 +135,88 @@ export const runSafetyAlgorithm = (allocation, max, available) => {
 
   return { steps, safeSequence, isSafe: !deadlock, need };
 };
+
+export const generateSafeCase = (numProcesses, numResources) => {
+  let p = numProcesses;
+  let r = numResources;
+  let safe = false;
+  let alloc, max, avail;
+  
+  while (!safe) {
+    max = Array(p).fill().map(() => Array(r).fill().map(() => Math.floor(Math.random() * 10) + 1));
+    alloc = max.map(row => row.map(val => Math.floor(Math.random() * (val + 1))));
+    avail = Array(r).fill().map(() => Math.floor(Math.random() * 5) + 1);
+    
+    const { isSafe } = runSafetyAlgorithm(alloc, max, avail);
+    if (isSafe) safe = true;
+  }
+  return { allocation: alloc, max, available: avail };
+};
+
+export const generateUnsafeCase = (numProcesses, numResources) => {
+  let p = numProcesses;
+  let r = numResources;
+  let safe = true;
+  let alloc, max, avail;
+  
+  while (safe) {
+    max = Array(p).fill().map(() => Array(r).fill().map(() => Math.floor(Math.random() * 10) + 1));
+    alloc = max.map(row => row.map(val => Math.floor(Math.random() * (val + 1))));
+    avail = Array(r).fill().map(() => Math.floor(Math.random() * 2));
+    
+    const { isSafe } = runSafetyAlgorithm(alloc, max, avail);
+    if (!isSafe) safe = false;
+  }
+  return { allocation: alloc, max, available: avail };
+};
+
+export const processRequest = (allocation, max, available, processIdx, requestVector) => {
+  const p = processIdx;
+  const need = computeNeedMatrix(allocation, max);
+  
+  for (let r = 0; r < requestVector.length; r++) {
+    if (requestVector[r] > need[p][r]) {
+      return { success: false, reason: `Request exceeds maximum needed resources.` };
+    }
+  }
+
+  for (let r = 0; r < requestVector.length; r++) {
+    if (requestVector[r] > available[r]) {
+      return { success: false, reason: `Request exceeds available resources. Process must wait.` };
+    }
+  }
+
+  let newAlloc = allocation.map(row => [...row]);
+  let newAvail = [...available];
+  
+  for (let r = 0; r < requestVector.length; r++) {
+    newAvail[r] -= requestVector[r];
+    newAlloc[p][r] += requestVector[r];
+  }
+
+  const { isSafe, safeSequence } = runSafetyAlgorithm(newAlloc, max, newAvail);
+  
+  if (isSafe) {
+    return { success: true, newAllocation: newAlloc, newAvailable: newAvail, reason: `Request granted. System is safe.`, safeSequence };
+  } else {
+    return { success: false, reason: `Request denied. Granting this request leads to an UNSAFE state.` };
+  }
+};
+
+export const evaluateSystemRisk = (allocation, max, available) => {
+  const { isSafe, need, steps } = runSafetyAlgorithm(allocation, max, available);
+  if (!isSafe) return 'UNSAFE';
+
+  let activeProcesses = 0;
+  for (let p = 0; p < need.length; p++) {
+    let hasResources = allocation[p].some(val => val > 0) || need[p].some(val => val > 0);
+    if (hasResources) activeProcesses++;
+  }
+
+  let hasZeroAvailable = available.some(val => val === 0);
+  if (hasZeroAvailable && activeProcesses > 1) {
+    return 'RISK';
+  }
+
+  return 'SAFE';
+};
